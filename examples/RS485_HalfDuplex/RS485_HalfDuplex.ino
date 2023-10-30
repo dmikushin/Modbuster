@@ -1,6 +1,6 @@
 /*
 
-  RS485_HalfDuplex.pde - example using ModbusMaster library to communicate
+  RS485_HalfDuplex.ino - example using ModbusMaster library to communicate
   with EPSolar LS2024B controller using a half-duplex RS485 transceiver.
 
   This example is tested against an EPSolar LS2024B solar charge controller.

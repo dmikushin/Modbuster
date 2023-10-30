@@ -1,6 +1,6 @@
 /*
 
-  PhoenixContact_nanoLC.pde - example using ModbusMaster library
+  PhoenixContact_nanoLC.ino - example using ModbusMaster library
   to communicate with PHOENIX CONTACT nanoLine controller.
 
   Library:: ModbusMaster

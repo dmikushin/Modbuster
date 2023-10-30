@@ -1,6 +1,6 @@
 /*
 
-  Basic.pde - example using ModbusMaster library
+  Server.ino - example using ModbusMaster library
 
   Library:: ModbusMaster
   Author:: Doc Walker <4-20ma@wvfans.net>
