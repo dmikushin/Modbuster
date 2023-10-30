@@ -30,9 +30,6 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 #include "ModbusMaster.h"
 
 /* _____PROJECT INCLUDES_____________________________________________________ */
-// functions to calculate Modbus Application Data Unit CRC
-#include "util/crc16_.h"
-
 // functions to manipulate words
 #include "util/word.h"
 
@@ -547,7 +544,6 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
   uint8_t u8ModbusADU[256];
   uint8_t u8ModbusADUSize = 0;
   uint8_t i, u8Qty;
-  uint16_t u16CRC;
   uint32_t u32StartTime;
   uint8_t u8BytesLeft = 8;
   uint8_t u8MBStatus = ku8MBSuccess;
@@ -637,13 +633,9 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
   }
   
   // append CRC
-  u16CRC = 0xFFFF;
-  for (i = 0; i < u8ModbusADUSize; i++)
-  {
-    u16CRC = crc16_update(u16CRC, u8ModbusADU[i]);
-  }
-  u8ModbusADU[u8ModbusADUSize++] = lowByte(u16CRC);
+  uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize);
   u8ModbusADU[u8ModbusADUSize++] = highByte(u16CRC);
+  u8ModbusADU[u8ModbusADUSize++] = lowByte(u16CRC);
   u8ModbusADU[u8ModbusADUSize] = 0;
 
   // flush receive buffer before transmitting request
@@ -773,15 +765,11 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
   if (!u8MBStatus && u8ModbusADUSize >= 5)
   {
     // calculate CRC
-    u16CRC = 0xFFFF;
-    for (i = 0; i < (u8ModbusADUSize - 2); i++)
-    {
-      u16CRC = crc16_update(u16CRC, u8ModbusADU[i]);
-    }
-    
+    uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize - 2);
+
     // verify CRC
-    if (!u8MBStatus && (lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
-      highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 1]))
+    if (!u8MBStatus && (highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
+      lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 1]))
     {
       u8MBStatus = ku8MBInvalidCRC;
     }
@@ -857,18 +845,13 @@ Sequence:
 */
 uint8_t ModbusMaster::ModbusRawTransaction(uint8_t *u8ModbusADU,uint8_t u8ModbusADUSize, uint8_t u8BytesLeft )
 {
-
-  uint16_t u16CRC;
   uint32_t u32StartTime;
 
   uint8_t u8MBStatus = ku8MBSuccess;
   u8ModbusADU[0] = _u8MBSlave;
+
   // calculate CRC
-  u16CRC = 0xFFFF;
-  for (uint8_t i = 0; i < u8ModbusADUSize; i++)
-  {
-    u16CRC = crc16_update(u16CRC, u8ModbusADU[i]);
-  }
+  uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize - 2);
 
   // flush receive buffer before transmitting request
   while (_serial->read() != -1);
@@ -894,14 +877,15 @@ uint8_t ModbusMaster::ModbusRawTransaction(uint8_t *u8ModbusADU,uint8_t u8Modbus
    #endif
     
   }
-   _serial->write(lowByte(u16CRC));
-   _serial->write(highByte(u16CRC)); 
+  
+  _serial->write(highByte(u16CRC));
+  _serial->write(lowByte(u16CRC)); 
 
   #ifdef MODBUS_DEBUG       
-    if (lowByte(u16CRC)<15) debugSerialPort.print("0");    
+    if (highByte(u16CRC)<15) debugSerialPort.print("0");    
     debugSerialPort.print (lowByte(u16CRC),HEX);
     
-    if (highByte(u16CRC)<15) debugSerialPort.print("0");    
+    if (lowByte(u16CRC)<15) debugSerialPort.print("0");    
     debugSerialPort.print (highByte(u16CRC),HEX);
     debugSerialPort.print(">");
 
@@ -967,15 +951,11 @@ uint8_t ModbusMaster::ModbusRawTransaction(uint8_t *u8ModbusADU,uint8_t u8Modbus
   if (!u8MBStatus && u8ModbusADUSize >= 4)
   {
     // calculate CRC
-    u16CRC = 0xFFFF;
-    for (uint8_t i = 0; i < (u8ModbusADUSize - 2); i++)
-    {
-      u16CRC = crc16_update(u16CRC, u8ModbusADU[i]);
-    }
-    
+    uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize - 2);
+
     // verify CRC
-    if (!u8MBStatus && (lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
-      highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 1]))
+    if (!u8MBStatus && (highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
+      lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 1]))
     {
       u8MBStatus = ku8MBInvalidCRC;
     }

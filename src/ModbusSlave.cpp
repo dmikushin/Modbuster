@@ -30,9 +30,6 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 #include "ModbusSlave.h"
 
 /* _____PROJECT INCLUDES_____________________________________________________ */
-// functions to calculate Modbus Application Data Unit CRC
-#include "util/crc16_.h"
-
 // functions to manipulate words
 #include "util/word.h"
 
@@ -140,10 +137,6 @@ bool ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size, uint8_t
 
   // calculate CRC
   uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize - 2);
-
-  Serial.println(u16CRC, HEX);
-  Serial.println(u8ModbusADU[u8ModbusADUSize - 2], HEX);
-  Serial.println(u8ModbusADU[u8ModbusADUSize - 1], HEX);
 
   // verify CRC
   if (highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
