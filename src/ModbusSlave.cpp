@@ -48,10 +48,6 @@ Creates class object; initialize it using ModbusSlave::begin().
 */
 ModbusSlave::ModbusSlave(void) : ModbusBase() { }
 
-#ifndef debugSerialPort
-#define debugSerialPort Serial
-#endif
-
 /**
 Initialize class object.
 
@@ -90,113 +86,75 @@ Sequence:
 
 @param *regs register table for communication exchange
 @param u8size size of the register table
-@return 0 on success; exception number on failure
+@param 0 on success; exception number on failure
+@return true, if request has been handled; false otherwiser
 */
-uint8_t ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size)
+bool ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size, uint8_t& u8MBStatus)
 {
-  uint8_t u8MBStatus = ku8MBSuccess;
+  u8MBStatus = ku8MBSuccess;
 
   if (!_serial->available())
-    return u8MBStatus;
-  
-  // loop until we run out of time or bytes, or an error occurs
-  uint8_t u8BytesLeft = 8;
-  uint32_t u32StartTime = millis();
-  uint8_t u8MBFunction;
-  while (u8BytesLeft && !u8MBStatus)
-  {
-    if (_serial->available())
-    { uint8_t ch;
-#if __MODBUSMASTER_DEBUG__
-      digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, true);
-#endif
-      ch = _serial->read();
+    return false;
 
 #ifdef MODBUS_DEBUG       
-          if (ch < 15) debugSerialPort.print("0");
-          debugSerialPort.print (ch,HEX);
-          debugSerialPort.print("<");
-#endif         
-      
-      if ((ch == _u8MBSlave) || u8ModbusADUSize)
-        {
-        u8ModbusADU[u8ModbusADUSize++]=ch;
-        u8BytesLeft--;
-        }
-#if __MODBUSMASTER_DEBUG__
-      digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, false);
+  debugSerialPort.println();
 #endif
-    }
-    else
-    {
-#if __MODBUSMASTER_DEBUG__
-      digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, true);
-#endif
-      if (_idle)
-      {
-        _idle();
-      }
-#if __MODBUSMASTER_DEBUG__
-      digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, false);
-#endif
-    }
-    
-    // evaluate slave ID, function code once enough bytes have been read
-    if (u8ModbusADUSize == 5)
-    {
-      u8MBFunction = u8ModbusADU[FUNC] & 0x7F;
-      
-      // check whether Modbus exception occurred; return Modbus Exception Code
-      if (bitRead(u8ModbusADU[1], 7))
-      {
-        u8MBStatus = u8ModbusADU[2];
-        break;
-      }
-      
-      // evaluate returned Modbus function code
-      switch(u8MBFunction)
-      {
-        case ku8MBReadCoils:
-        case ku8MBReadDiscreteInputs:
-        case ku8MBReadInputRegisters:
-        case ku8MBReadHoldingRegisters:
-        case ku8MBReadWriteMultipleRegisters:
-          u8BytesLeft = u8ModbusADU[2];
-          break;
-          
-        case ku8MBWriteSingleCoil:
-        case ku8MBWriteMultipleCoils:
-        case ku8MBWriteSingleRegister:
-        case ku8MBWriteMultipleRegisters:
-          u8BytesLeft = 3;
-          break;
-          
-        case ku8MBMaskWriteRegister:
-          u8BytesLeft = 5;
-          break;
-      }
-    }
-    if ((millis() - u32StartTime) > ku16MBResponseTimeout)
-    {
-      u8MBStatus = ku8MBResponseTimedOut;
-    }
-  }
-  
-  // verify response is large enough to inspect further
-  if (!u8MBStatus && u8ModbusADUSize >= 5)
+ 
+  // loop until the frame is sealed by a T35 delay.
+  uint8_t u8BytesLeft = 8;
+  const uint8_t T35 = 5;
+  uint32_t u32StartTime = millis();
+  do
   {
-    // calculate CRC
-    uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize - 2);
+    if (!_serial->available()) continue;
+
+#if __MODBUSMASTER_DEBUG__
+    digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, true);
+#endif
+    uint8_t ch = _serial->read();
+
+#ifdef MODBUS_DEBUG       
+    if (ch < 15) debugSerialPort.print("0");
+    debugSerialPort.print(ch, HEX);
+    debugSerialPort.print("<");
+#endif         
+  
+    u8ModbusADU[u8ModbusADUSize++] = ch;
+    u8BytesLeft--;
+    u32StartTime = millis();
+
+#if __MODBUSMASTER_DEBUG__
+    digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, false);
+#endif
     
-    // verify CRC
-    if (!u8MBStatus && (lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
-      highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 1]))
-    {
-      u8MBStatus = ku8MBInvalidCRC;
-    }
+  }
+  while ((millis() - u32StartTime) < T35);
+
+#ifdef MODBUS_DEBUG       
+  debugSerialPort.println();
+#endif
+
+  uint8_t id = u8ModbusADU[ID];
+  if (id != _u8MBSlave)
+    return false;
+
+  // calculate CRC
+  uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize - 2);
+
+  Serial.println(u16CRC, HEX);
+  Serial.println(u8ModbusADU[u8ModbusADUSize - 2], HEX);
+  Serial.println(u8ModbusADU[u8ModbusADUSize - 1], HEX);
+
+  // verify CRC
+  if (highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
+    lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 1])
+  {
+    u8MBStatus = ku8MBInvalidCRC;
+    return true;
   }
 
   // Process request and prepare response of in the same buffer.
+  uint8_t u8MBFunction = u8ModbusADU[FUNC];
   switch (u8MBFunction)
   {
   case ku8MBReadCoils:
@@ -245,7 +203,7 @@ uint8_t ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size)
     _postTransmission();
   }
   
-  return u8MBStatus;
+  return true;
 }
 
 /**

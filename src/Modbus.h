@@ -31,6 +31,15 @@ Arduino library for communicating with Modbus master/slaves over RS232/485 (via 
 
 
 /**
+Set to 1 to print the message content to the serial port
+*/
+#define MODBUS_DEBUG
+
+#ifndef debugSerialPort
+#define debugSerialPort Serial
+#endif
+
+/**
 @def __MODBUSMASTER_DEBUG__ (0)
 Set to 1 to enable debugging features within class:
   - PIN A cycles for each byte read in the Modbus response

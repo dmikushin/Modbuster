@@ -2,7 +2,7 @@
 
 using namespace ModBuster;
 
-uint16_t crc(uint8_t* au8Buffer, uint8_t u8length)
+uint16_t ModBuster::crc(uint8_t* au8Buffer, uint8_t u8length)
 {
     unsigned int temp, temp2, flag;
     temp = 0xFFFF;

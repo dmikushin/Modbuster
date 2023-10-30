@@ -55,7 +55,7 @@ public :
     void begin(uint8_t, Stream &serial);
 
     // slave function that conducts Modbus transactions
-    uint8_t ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size);    
+    bool ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size, uint8_t& result);
     
 private :
 

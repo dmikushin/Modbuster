@@ -48,10 +48,6 @@ Creates class object; initialize it using ModbusMaster::begin().
 */
 ModbusMaster::ModbusMaster(void) : ModbusBase() { }
 
-#ifndef debugSerialPort
-#define debugSerialPort Serial
-#endif
-
 /**
 Initialize class object.
 
@@ -939,10 +935,10 @@ uint8_t ModbusMaster::ModbusRawTransaction(uint8_t *u8ModbusADU,uint8_t u8Modbus
           
       
       if ((ch == _u8MBSlave) || u8ModbusADUSize)
-        {
+      {
         u8ModbusADU[u8ModbusADUSize++]=ch;
         u8BytesLeft--;
-        }
+      }
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, false);
 #endif
