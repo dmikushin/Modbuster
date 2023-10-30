@@ -46,12 +46,7 @@ Creates class object; initialize it using ModbusSlave::begin().
 
 @ingroup setup
 */
-ModbusSlave::ModbusSlave(void)
-{
-  _idle = 0;
-  _preTransmission = 0;
-  _postTransmission = 0;
-}
+ModbusSlave::ModbusSlave(void) : ModbusBase() { }
 
 #ifndef debugSerialPort
 #define debugSerialPort Serial
@@ -81,174 +76,6 @@ void ModbusSlave::begin(uint8_t slave, Stream &serial)
 #endif
 }
 
-
-void ModbusSlave::beginTransmission(uint16_t u16Address)
-{
-  _u16WriteAddress = u16Address;
-  _u8TransmitBufferIndex = 0;
-  u16TransmitBufferLength = 0;
-}
-
-
-
-
-
-
-
-
-
-
-uint8_t ModbusSlave::available(void)
-{
-  return _u8ResponseBufferLength - _u8ResponseBufferIndex;
-}
-
-
-uint16_t ModbusSlave::receive(void)
-{
-  if (_u8ResponseBufferIndex < _u8ResponseBufferLength)
-  {
-    return _u16ResponseBuffer[_u8ResponseBufferIndex++];
-  }
-  else
-  {
-    return 0xFFFF;
-  }
-}
-
-
-
-
-
-
-
-
-/**
-Set idle time callback function (cooperative multitasking).
-
-This function gets called in the idle time between transmission of data
-and response from slave. Do not call functions that read from the serial
-buffer that is used by ModbusMaster. Use of i2c/TWI, 1-Wire, other
-serial ports, etc. is permitted within callback function.
-
-@see ModbusSlave::ModbusMasterTransaction()
-*/
-void ModbusSlave::idle(void (*idle)())
-{
-  _idle = idle;
-}
-
-/**
-Set pre-transmission callback function.
-
-This function gets called just before a Modbus message is sent over serial.
-Typical usage of this callback is to enable an RS485 transceiver's
-Driver Enable pin, and optionally disable its Receiver Enable pin.
-
-@see ModbusSlave::ModbusMasterTransaction()
-@see ModbusSlave::postTransmission()
-*/
-void ModbusSlave::preTransmission(void (*preTransmission)())
-{
-  _preTransmission = preTransmission;
-}
-
-/**
-Set post-transmission callback function.
-
-This function gets called after a Modbus message has finished sending
-(i.e. after all data has been physically transmitted onto the serial
-bus).
-
-Typical usage of this callback is to enable an RS485 transceiver's
-Receiver Enable pin, and disable its Driver Enable pin.
-
-@see ModbusSlave::ModbusMasterTransaction()
-@see ModbusSlave::preTransmission()
-*/
-void ModbusSlave::postTransmission(void (*postTransmission)())
-{
-  _postTransmission = postTransmission;
-}
-
-
-/**
-Retrieve data from response buffer.
-
-@see ModbusSlave::clearResponseBuffer()
-@param u8Index index of response buffer array (0x00..0x3F)
-@return value in position u8Index of response buffer (0x0000..0xFFFF)
-@ingroup buffer
-*/
-uint16_t ModbusSlave::getResponseBuffer(uint8_t u8Index)
-{
-  if (u8Index < ku8MaxBufferSize)
-  {
-    return _u16ResponseBuffer[u8Index];
-  }
-  else
-  {
-    return 0xFFFF;
-  }
-}
-
-
-/**
-Clear Modbus response buffer.
-
-@see ModbusSlave::getResponseBuffer(uint8_t u8Index)
-@ingroup buffer
-*/
-void ModbusSlave::clearResponseBuffer()
-{
-  uint8_t i;
-  
-  for (i = 0; i < ku8MaxBufferSize; i++)
-  {
-    _u16ResponseBuffer[i] = 0;
-  }
-}
-
-
-/**
-Place data in transmit buffer.
-
-@see ModbusSlave::clearTransmitBuffer()
-@param u8Index index of transmit buffer array (0x00..0x3F)
-@param u16Value value to place in position u8Index of transmit buffer (0x0000..0xFFFF)
-@return 0 on success; exception number on failure
-@ingroup buffer
-*/
-uint8_t ModbusSlave::setTransmitBuffer(uint8_t u8Index, uint16_t u16Value)
-{
-  if (u8Index < ku8MaxBufferSize)
-  {
-    _u16TransmitBuffer[u8Index] = u16Value;
-    return ku8MBSuccess;
-  }
-  else
-  {
-    return ku8MBIllegalDataAddress;
-  }
-}
-
-
-/**
-Clear Modbus transmit buffer.
-
-@see ModbusSlave::setTransmitBuffer(uint8_t u8Index, uint16_t u16Value)
-@ingroup buffer
-*/
-void ModbusSlave::clearTransmitBuffer()
-{
-  uint8_t i;
-  
-  for (i = 0; i < ku8MaxBufferSize; i++)
-  {
-    _u16TransmitBuffer[i] = 0;
-  }
-}
-
 /* _____PRIVATE FUNCTIONS____________________________________________________ */
 /**
 Modbus slave transaction engine.
@@ -267,8 +94,6 @@ Sequence:
 */
 uint8_t ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size)
 {
-  uint8_t u8ModbusADU[256];
-  uint8_t u8ModbusADUSize = 0;
   uint8_t u8MBStatus = ku8MBSuccess;
 
   if (!_serial->available())
@@ -277,6 +102,7 @@ uint8_t ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size)
   // loop until we run out of time or bytes, or an error occurs
   uint8_t u8BytesLeft = 8;
   uint32_t u32StartTime = millis();
+  uint8_t u8MBFunction;
   while (u8BytesLeft && !u8MBStatus)
   {
     if (_serial->available())
@@ -318,7 +144,7 @@ uint8_t ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size)
     // evaluate slave ID, function code once enough bytes have been read
     if (u8ModbusADUSize == 5)
     {
-      uint8_t u8MBFunction = u8ModbusADU[1] & 0x7F;
+      u8MBFunction = u8ModbusADU[FUNC] & 0x7F;
       
       // check whether Modbus exception occurred; return Modbus Exception Code
       if (bitRead(u8ModbusADU[1], 7))
@@ -360,11 +186,7 @@ uint8_t ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size)
   if (!u8MBStatus && u8ModbusADUSize >= 5)
   {
     // calculate CRC
-    uint16_t u16CRC = 0xFFFF;
-    for (uint8_t i = 0; i < (u8ModbusADUSize - 2); i++)
-    {
-      u16CRC = crc16_update(u16CRC, u8ModbusADU[i]);
-    }
+    uint16_t u16CRC = crc(u8ModbusADU, u8ModbusADUSize - 2);
     
     // verify CRC
     if (!u8MBStatus && (lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
@@ -374,63 +196,317 @@ uint8_t ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size)
     }
   }
 
-  // disassemble ADU into words
-  if (!u8MBStatus)
+  // Process request and prepare response of in the same buffer.
+  switch (u8MBFunction)
   {
-    // evaluate returned Modbus function code
-    switch(u8ModbusADU[1])
-    {
-      case ku8MBReadCoils:
-      case ku8MBReadDiscreteInputs:
-        // load bytes into word; response bytes are ordered L, H, L, H, ...
-        uint8_t i = 0;
-        for ( ; i < (u8ModbusADU[2] >> 1); i++)
-        {
-          if (i < ku8MaxBufferSize)
-          {
-            _u16ResponseBuffer[i] = word(u8ModbusADU[2 * i + 4], u8ModbusADU[2 * i + 3]);
-          }
-          
-          _u8ResponseBufferLength = i;
-        }
-        
-        // in the event of an odd number of bytes, load last byte into zero-padded word
-        if (u8ModbusADU[2] % 2)
-        {
-          if (i < ku8MaxBufferSize)
-          {
-            _u16ResponseBuffer[i] = word(0, u8ModbusADU[2 * i + 3]);
-          }
-          
-          _u8ResponseBufferLength = i + 1;
-        }
-        break;
-        
-      case ku8MBReadInputRegisters:
-      case ku8MBReadHoldingRegisters:
-      case ku8MBReadWriteMultipleRegisters:
-        // load bytes into word; response bytes are ordered H, L, H, L, ...
-        for (uint8_t i = 0; i < (u8ModbusADU[2] >> 1); i++)
-        {
-          if (i < ku8MaxBufferSize)
-          {
-            _u16ResponseBuffer[i] = word(u8ModbusADU[2 * i + 3], u8ModbusADU[2 * i + 4]);
-          }
-          
-          _u8ResponseBufferLength = i;
-        }
-        break;
-    }
+  case ku8MBReadCoils:
+  case ku8MBReadDiscreteInputs:
+    process_FC1(regs, u8size);
+    break;
+  case ku8MBReadInputRegisters:
+  case ku8MBReadHoldingRegisters:
+  case ku8MBReadWriteMultipleRegisters:
+    process_FC3(regs, u8size);
+    break;
+  case ku8MBWriteSingleCoil:
+    process_FC5(regs, u8size);
+    break;
+  case ku8MBWriteSingleRegister:
+    process_FC6(regs, u8size);
+    break;
+  case ku8MBWriteMultipleCoils:
+    process_FC15(regs, u8size);
+    break;
+  case ku8MBWriteMultipleRegisters:
+    process_FC16(regs, u8size);
+    break;
+  default:
+    break;
   }
   
   _u8TransmitBufferIndex = 0;
   u16TransmitBufferLength = 0;
   _u8ResponseBufferIndex = 0;
-  
-  memcpy(regs, u8ModbusADU, sizeof(regs[0]) * u8size);
 
-  // TODO So far, we have only received the request, now we need to respond to the query.
+  // flush receive buffer before transmitting request
+  while (_serial->read() != -1)
+    continue;
+
+  // transmit response
+  if (_preTransmission)
+  {
+    _preTransmission();
+  }
+  
+  sendTxBuffer();
+
+  if (_postTransmission)
+  {
+    _postTransmission();
+  }
   
   return u8MBStatus;
+}
+
+/**
+ * @brief
+ * This method processes functions 1 & 2
+ * This method reads a bit array and transfers it to the master
+ *
+ * @return u8ModbusADUSize Response to master length
+ * @ingroup discrete
+ */
+void ModbusSlave::process_FC1( uint16_t *regs, uint8_t /*u8size*/ )
+{
+    uint8_t u8currentRegister, u8currentBit, u8bytesno, u8bitsno;
+    uint16_t u16currentCoil, u16coil;
+
+    // get the first and last coil from the message
+    uint16_t u16StartCoil = word( u8ModbusADU[ ADD_HI ], u8ModbusADU[ ADD_LO ] );
+    uint16_t u16Coilno = word( u8ModbusADU[ NB_HI ], u8ModbusADU[ NB_LO ] );
+
+    // put the number of bytes in the outcoming message
+    u8bytesno = (uint8_t) (u16Coilno / 8);
+    if (u16Coilno % 8 != 0) u8bytesno ++;
+    u8ModbusADU[ ADD_HI ]  = u8bytesno;
+    u8ModbusADUSize         = ADD_LO;
+    u8ModbusADU[ u8ModbusADUSize + u8bytesno - 1 ] = 0;
+
+    // read each coil from the register map and put its value inside the outcoming message
+    u8bitsno = 0;
+
+    // Clear all data bits in outgoing message.
+    memset(u8ModbusADU + u8ModbusADUSize, 0, sizeof(u8ModbusADU) - u8ModbusADUSize);
+
+    for (u16currentCoil = 0; u16currentCoil < u16Coilno; u16currentCoil++)
+    {
+        u16coil = u16StartCoil + u16currentCoil;
+        u8currentRegister = (uint8_t) (u16coil / 16);
+        u8currentBit = (uint8_t) (u16coil % 16);
+
+        bitWrite(
+            u8ModbusADU[ u8ModbusADUSize ],
+            u8bitsno,
+            bitRead( regs[ u8currentRegister ], u8currentBit ) );
+        u8bitsno ++;
+
+        if (u8bitsno > 7)
+        {
+            u8bitsno = 0;
+            u8ModbusADUSize++;
+        }
+    }
+
+    // send outcoming message
+    if (u16Coilno % 8 != 0) u8ModbusADUSize++;
+}
+
+/**
+ * @brief
+ * This method processes functions 3 & 4
+ * This method reads a word array and transfers it to the master
+ *
+ * @return u8ModbusADUSize Response to master length
+ * @ingroup register
+ */
+void ModbusSlave::process_FC3( uint16_t *regs, uint8_t /*u8size*/ )
+{
+
+    uint8_t u8StartAdd = word( u8ModbusADU[ ADD_HI ], u8ModbusADU[ ADD_LO ] );
+    uint8_t u8regsno = word( u8ModbusADU[ NB_HI ], u8ModbusADU[ NB_LO ] );
+    uint8_t i;
+
+    u8ModbusADU[ 2 ]       = u8regsno * 2;
+    u8ModbusADUSize         = 3;
+
+    for (i = u8StartAdd; i < u8StartAdd + u8regsno; i++)
+    {
+        u8ModbusADU[ u8ModbusADUSize ] = highByte(regs[i]);
+        u8ModbusADUSize++;
+        u8ModbusADU[ u8ModbusADUSize ] = lowByte(regs[i]);
+        u8ModbusADUSize++;
+    }
+}
+
+/**
+ * @brief
+ * This method processes function 5
+ * This method writes a value assigned by the master to a single bit
+ *
+ * @return u8ModbusADUSize Response to master length
+ * @ingroup discrete
+ */
+void ModbusSlave::process_FC5( uint16_t *regs, uint8_t /*u8size*/ )
+{
+    uint8_t u8currentRegister, u8currentBit;
+    uint8_t u8CopyBufferSize;
+    uint16_t u16coil = word( u8ModbusADU[ ADD_HI ], u8ModbusADU[ ADD_LO ] );
+
+    // point to the register and its bit
+    u8currentRegister = (uint8_t) (u16coil / 16);
+    u8currentBit = (uint8_t) (u16coil % 16);
+
+    // write to coil
+    bitWrite(
+        regs[ u8currentRegister ],
+        u8currentBit,
+        u8ModbusADU[ NB_HI ] == 0xff );
+
+
+    // send answer to master
+    u8ModbusADUSize = 6;
+}
+
+/**
+ * @brief
+ * This method processes function 6
+ * This method writes a value assigned by the master to a single word
+ *
+ * @return u8ModbusADUSize Response to master length
+ * @ingroup register
+ */
+void ModbusSlave::process_FC6( uint16_t *regs, uint8_t /*u8size*/ )
+{
+
+    uint8_t u8add = word( u8ModbusADU[ ADD_HI ], u8ModbusADU[ ADD_LO ] );
+    uint8_t u8CopyBufferSize;
+    uint16_t u16val = word( u8ModbusADU[ NB_HI ], u8ModbusADU[ NB_LO ] );
+
+    regs[ u8add ] = u16val;
+
+    // keep the same header
+    u8ModbusADUSize = ku8ResponseSize;
+}
+
+/**
+ * @brief
+ * This method processes function 15
+ * This method writes a bit array assigned by the master
+ *
+ * @return u8ModbusADUSize Response to master length
+ * @ingroup discrete
+ */
+void ModbusSlave::process_FC15( uint16_t *regs, uint8_t /*u8size*/ )
+{
+    uint8_t u8currentRegister, u8currentBit, u8frameByte, u8bitsno;
+    uint16_t u16currentCoil, u16coil;
+    boolean bTemp;
+
+    // get the first and last coil from the message
+    uint16_t u16StartCoil = word( u8ModbusADU[ ADD_HI ], u8ModbusADU[ ADD_LO ] );
+    uint16_t u16Coilno = word( u8ModbusADU[ NB_HI ], u8ModbusADU[ NB_LO ] );
+
+    // read each coil from the register map and put its value inside the outcoming message
+    u8bitsno = 0;
+    u8frameByte = 7;
+    for (u16currentCoil = 0; u16currentCoil < u16Coilno; u16currentCoil++)
+    {
+
+        u16coil = u16StartCoil + u16currentCoil;
+        u8currentRegister = (uint8_t) (u16coil / 16);
+        u8currentBit = (uint8_t) (u16coil % 16);
+
+        bTemp = bitRead(
+                    u8ModbusADU[ u8frameByte ],
+                    u8bitsno );
+
+        bitWrite(
+            regs[ u8currentRegister ],
+            u8currentBit,
+            bTemp );
+
+        u8bitsno ++;
+
+        if (u8bitsno > 7)
+        {
+            u8bitsno = 0;
+            u8frameByte++;
+        }
+    }
+
+    // send outcoming message
+    // it's just a copy of the incomping frame until 6th byte
+    u8ModbusADUSize = 6;
+}
+
+/**
+ * @brief
+ * This method processes function 16
+ * This method writes a word array assigned by the master
+ *
+ * @return u8ModbusADUSize Response to master length
+ * @ingroup register
+ */
+void ModbusSlave::process_FC16( uint16_t *regs, uint8_t /*u8size*/ )
+{
+    uint8_t u8StartAdd = u8ModbusADU[ ADD_HI ] << 8 | u8ModbusADU[ ADD_LO ];
+    uint8_t u8regsno = u8ModbusADU[ NB_HI ] << 8 | u8ModbusADU[ NB_LO ];
+    uint8_t i;
+    uint16_t temp;
+
+    // build header
+    u8ModbusADU[ NB_HI ]   = 0;
+    u8ModbusADU[ NB_LO ]   = u8regsno;
+    u8ModbusADUSize         = ku8ResponseSize;
+
+    // write registers
+    for (i = 0; i < u8regsno; i++)
+    {
+        temp = word(
+                   u8ModbusADU[ (BYTE_CNT + 1) + i * 2 ],
+                   u8ModbusADU[ (BYTE_CNT + 2) + i * 2 ]);
+
+        regs[ u8StartAdd + i ] = temp;
+    }
+}
+
+/**
+ * @brief
+ * This method transmits u8ModbusADU to Serial line.
+ * Only if u8txenpin != 0, there is a flow handling in order to keep
+ * the RS485 transceiver in output state as long as the message is being sent.
+ * This is done with UCSRxA register.
+ * The CRC is appended to the buffer before starting to send it.
+ *
+ * @param nothing
+ * @return nothing
+ * @ingroup buffer
+ */
+void ModbusSlave::sendTxBuffer()
+{
+    // append CRC to message
+    uint16_t u16crc = crc(u8ModbusADU, u8ModbusADUSize);
+    u8ModbusADU[ u8ModbusADUSize ] = u16crc >> 8;
+    u8ModbusADUSize++;
+    u8ModbusADU[ u8ModbusADUSize ] = u16crc & 0x00ff;
+    u8ModbusADUSize++;
+
+#ifdef MODBUS_DEBUG       
+	debugSerialPort.println();
+#endif
+
+    // transfer buffer to serial line
+	for (uint8_t i = 0; i < u8ModbusADUSize; i++)
+	{
+		_serial->write(u8ModbusADU[i]);
+    
+#ifdef MODBUS_DEBUG       
+		if (u8ModbusADU[i]<15) debugSerialPort.print("0");    
+		debugSerialPort.print (u8ModbusADU[i],HEX);
+		debugSerialPort.print(">");
+#endif
+	}
+  
+#ifdef MODBUS_DEBUG       
+	debugSerialPort.println();
+#endif
+  
+	u8ModbusADUSize = 0;
+	
+	// flush transmit buffer
+	_serial->flush();
+
+	while (_serial->read() >= 0)
+		continue;
 }
 

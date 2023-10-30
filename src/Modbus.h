@@ -181,6 +181,53 @@ enum ModbusFunctin16bit
     ku8MBReadWriteMultipleRegisters = 0x17, ///< Modbus function 0x17 Read Write Multiple Registers
 };
 
+/**
+* @enum MESSAGE
+* @brief
+* Indexes to telegram frame positions
+*/
+enum ModbusFramePosition
+{
+	ID = 0,   //!< ID field
+	FUNC,     //!< Function code position
+	ADD_HI,   //!< Address high byte
+	ADD_LO,   //!< Address low byte
+	NB_HI,    //!< Number of coils or registers high byte
+	NB_LO,    //!< Number of coils or registers low byte
+	BYTE_CNT  //!< byte counter
+};
+
+// Size of response/transmit buffers
+const uint8_t ku8MaxBufferSize = 64;
+
+// Slave to master response size
+const uint8_t ku8ResponseSize = 6;
+    
+// Modbus timeout [milliseconds]
+const uint16_t ku16MBResponseTimeout = 2000;
+
+class ModbusBase
+{
+protected :
+
+    // idle callback function; gets called during idle time between TX and RX
+    void (*_idle)() = nullptr;
+    // preTransmission callback function; gets called before writing a Modbus message
+    void (*_preTransmission)() = nullptr;
+    // postTransmission callback function; gets called after a Modbus message has been sent
+    void (*_postTransmission)() = nullptr;
+
+    ModbusBase();
+
+public :
+
+    void idle(void (*)());
+    void preTransmission(void (*)());
+    void postTransmission(void (*)());
+};
+
+uint16_t crc(uint8_t* au8Buffer, uint8_t u8length);
+
 } // namespace ModBuster
 
 #endif // MODBUSTER_H
