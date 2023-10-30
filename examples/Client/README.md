@@ -1,6 +1,6 @@
 # MODBUS client (slave) on Arduino
 
-This sample demonstrates the deployment of MODBUS client (slave) on Arduino board. The sample provides the Arduino firmware to be flashed onto the board, and a Python script that uses pymodbus module to perform the MODBUS requests to the Arduino board.
+This sample demonstrates the deployment of MODBUS client (slave) on Arduino board. The sample provides the Arduino firmware to be flashed onto the board, and a Python script that uses pymodbus module to perform the MODBUS requests to the Arduino board. Moreover, the MODBUS communication is performed via software serial pins.
 
 <img width="300px" src="picture.png">
 

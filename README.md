@@ -1,18 +1,16 @@
-# ModbusMaster
-[![GitHub release](https://img.shields.io/github/release/4-20ma/ModbusMaster.svg?maxAge=3600)][GitHub release]
-[![Travis](https://img.shields.io/travis/4-20ma/ModbusMaster.svg?maxAge=3600)][Travis]
-[![license](https://img.shields.io/github/license/4-20ma/ModbusMaster.svg?maxAge=3600)][license]
-[![code of conduct](https://img.shields.io/badge/%E2%9D%A4-code%20of%20conduct-blue.svg?maxAge=3600)][code of conduct]
+# ModBuster
 
-[GitHub release]:   https://github.com/4-20ma/ModbusMaster
-[Travis]:           https://travis-ci.org/4-20ma/ModbusMaster
+<img width="300px" src="modbusted.png">
+
 [license]:          LICENSE
 [code of conduct]:  CODE_OF_CONDUCT.md
 
-
 ## Overview
-This is an Arduino library for communicating with Modbus slaves over RS232/485 (via RTU protocol).
+This is an Arduino library implementing MODBUS protocol for communicating between MODBUS server and clients over RS232/485 (via RTU protocol). Both server and client roles are supported for Arduino device.
 
+This library is developed despite many other existing libraries, because not so many authors understand the importance of MODBUS support on arbitrary software serial pins.
+
+This library is a fork and extension of [ModbusMaster](https://github.com/4-20ma/ModbusMaster), combined with the best portions of [Modbus-Master-Slave-for-Arduino](https://github.com/smarmengol/Modbus-Master-Slave-for-Arduino).
 
 ## Features
 The following Modbus functions are available:
@@ -41,7 +39,7 @@ Both full-duplex and half-duplex RS232/485 transceivers are supported. Callback 
 #### Library Manager
 Install the library into your Arduino IDE using the Library Manager (available from IDE version 1.6.2). Open the IDE and click Sketch > Include Library > Manage Libraries&hellip;
 
-Scroll or search for `ModbusMaster`, then select the version of the library you want to install. Quit/re-launch the IDE to refresh the list; new versions are automatically added to the list, once released on GitHub.
+Scroll or search for `ModBuster`, then select the version of the library you want to install. Quit/re-launch the IDE to refresh the list; new versions are automatically added to the list, once released on GitHub.
 
 Refer to Arduino Tutorials > Libraries [Using the Library Manager](https://www.arduino.cc/en/Guide/Libraries#toc3).
 
@@ -63,42 +61,17 @@ Arduinos prior to the Mega have one serial port which must be connected to USB (
 
 
 ## Support
-Please [submit an issue](https://github.com/4-20ma/ModbusMaster/issues) for all questions, bug reports, and feature requests. Email requests will be politely redirected to the issue tracker so others may contribute to the discussion and requestors get a more timely response.
+Please submit an issue for all questions, bug reports, and feature requests. Email requests will be politely redirected to the issue tracker so others may contribute to the discussion and requestors get a more timely response.
 
 
 ## Example
-The library contains a few sketches that demonstrate use of the `ModbusMaster` library. You can find these in the [examples](https://github.com/4-20ma/ModbusMaster/tree/master/examples) folder.
+The library contains a few sketches that demonstrate use of the `ModBuster` library. You can find these in the [examples](examples) folder.
 
 ``` cpp
-/*
+#include <ModbusServer.h>
 
-  Basic.pde - example using ModbusMaster library
-
-  Library:: ModbusMaster
-  Author:: Doc Walker <4-20ma@wvfans.net>
-
-  Copyright:: 2009-2016 Doc Walker
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-
-*/
-
-#include <ModbusMaster.h>
-
-
-// instantiate ModbusMaster object
-ModbusMaster node;
-
+// instantiate ModbusServer object
+ModbusServer node;
 
 void setup()
 {
@@ -108,7 +81,6 @@ void setup()
   // communicate with Modbus slave ID 2 over Serial (port 0)
   node.begin(2, Serial);
 }
-
 
 void loop()
 {

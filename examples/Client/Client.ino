@@ -5,11 +5,10 @@
  * Upon every MODBUS client state update, the client checks the "activity" bitmask
  * set by user and increments only those values that are marked "active".
  */
-#include <ModbusSlave.h>
-//#include <PostNeoSWSerial.h>
+#include <ModbusClient.h>
 #include <SoftwareSerial.h>
 
-#define ID 1 /* 0 for master, 1-247 for slave */
+#define ID 1 /* 0 for master, 1-247 for client */
 
 #define BAUDRATE 9600
 
@@ -18,11 +17,10 @@ using namespace ModBuster;
 const uint8_t RX = 9;
 const uint8_t TX = 10;
 
-//PostNeoSWSerial swSerial(RX, TX);
 SoftwareSerial swSerial(RX, TX);
 
 // Create instance
-ModbusSlave slave;
+ModbusClient client;
 
 enum ModBusRegisters
 {
@@ -54,13 +52,13 @@ void setup() {
   Serial.begin(BAUDRATE);
   memset(regs, 0, sizeof(regs));
   swSerial.begin(BAUDRATE);
-  slave.begin(ID, swSerial);
+  client.begin(ID, swSerial);
 }
 
 void loop() {
   // Receive the given registers state update from master
   uint8_t result;
-  bool processed = slave.ModbusSlaveTransaction(regs, ModBusNumRegisters, result);
+  bool processed = client.ModbusClientTransaction(regs, ModBusNumRegisters, result);
 
   // Check if read was successful
   if (result == ModBuster::ku8MBSuccess)
