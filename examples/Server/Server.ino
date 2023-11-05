@@ -1,8 +1,8 @@
 /*
 
-  Server.ino - example using ModbusMaster library
+  Server.ino - example using ModbusServer library
 
-  Library:: ModbusMaster
+  Library:: ModbusServer
   Author:: Doc Walker <4-20ma@wvfans.net>
 
   Copyright:: 2009-2016 Doc Walker
@@ -21,11 +21,11 @@
 
 */
 
-#include <ModbusMaster.h>
+#include <ModbusServer.h>
 
 
-// instantiate ModbusMaster object
-ModbusMaster node;
+// instantiate ModbusServer object
+ModbusServer node;
 
 
 void setup()

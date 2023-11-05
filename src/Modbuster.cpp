@@ -1,4 +1,4 @@
-#include "Modbus.h"
+#include "Modbuster.h"
 
 using namespace ModBuster;
 
@@ -33,10 +33,10 @@ Set idle time callback function (cooperative multitasking).
 
 This function gets called in the idle time between transmission of data
 and response from slave. Do not call functions that read from the serial
-buffer that is used by ModbusMaster. Use of i2c/TWI, 1-Wire, other
+buffer that is used by ModbusServer. Use of i2c/TWI, 1-Wire, other
 serial ports, etc. is permitted within callback function.
 
-@see ModbusBase::ModbusMasterTransaction()
+@see ModbusBase::ModbusServerTransaction()
 */
 void ModbusBase::idle(void (*idle)())
 {
@@ -50,7 +50,7 @@ This function gets called just before a Modbus message is sent over serial.
 Typical usage of this callback is to enable an RS485 transceiver's
 Driver Enable pin, and optionally disable its Receiver Enable pin.
 
-@see ModbusBase::ModbusMasterTransaction()
+@see ModbusBase::ModbusServerTransaction()
 @see ModbusBase::postTransmission()
 */
 void ModbusBase::preTransmission(void (*preTransmission)())
@@ -68,7 +68,7 @@ bus).
 Typical usage of this callback is to enable an RS485 transceiver's
 Receiver Enable pin, and disable its Driver Enable pin.
 
-@see ModbusBase::ModbusMasterTransaction()
+@see ModbusBase::ModbusServerTransaction()
 @see ModbusBase::preTransmission()
 */
 void ModbusBase::postTransmission(void (*postTransmission)())

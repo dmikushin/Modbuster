@@ -119,7 +119,7 @@ enum ModbusExpectionCodes
 
     // Class-defined success/exception codes
     /**
-    ModbusMaster success.
+    ModbusServer success.
     
     Modbus transaction was successful; the following checks were valid:
       - slave ID
@@ -133,7 +133,7 @@ enum ModbusExpectionCodes
     ku8MBSuccess                    = 0x00,
     
     /**
-    ModbusMaster invalid response slave ID exception.
+    ModbusServer invalid response slave ID exception.
     
     The slave ID in the response does not match that of the request.
     
@@ -142,7 +142,7 @@ enum ModbusExpectionCodes
     ku8MBInvalidSlaveID             = 0xE0,
     
     /**
-    ModbusMaster invalid response function exception.
+    ModbusServer invalid response function exception.
     
     The function code in the response does not match that of the request.
     
@@ -151,17 +151,17 @@ enum ModbusExpectionCodes
     ku8MBInvalidFunction            = 0xE1,
     
     /**
-    ModbusMaster response timed out exception.
+    ModbusServer response timed out exception.
     
     The entire response was not received within the timeout period, 
-    ModbusMaster::ku8MBResponseTimeout. 
+    ModbusServer::ku8MBResponseTimeout. 
     
     @ingroup constant
     */
     ku8MBResponseTimedOut           = 0xE2,
     
     /**
-    ModbusMaster invalid response CRC exception.
+    ModbusServer invalid response CRC exception.
     
     The CRC in the response does not match the one calculated.
     

@@ -1,13 +1,13 @@
 /*
 
-  RS485_HalfDuplex.ino - example using ModbusMaster library to communicate
+  RS485_HalfDuplex.ino - example using ModbusServer library to communicate
   with EPSolar LS2024B controller using a half-duplex RS485 transceiver.
 
   This example is tested against an EPSolar LS2024B solar charge controller.
   See here for protocol specs:
   http://www.solar-elektro.cz/data/dokumenty/1733_modbus_protocol.pdf
 
-  Library:: ModbusMaster
+  Library:: ModbusServer
   Author:: Marius Kintel <marius at kintel dot net>
 
   Copyright:: 2009-2016 Doc Walker
@@ -26,7 +26,7 @@
 
 */
 
-#include <ModbusMaster.h>
+#include <ModbusServer.h>
 
 /*!
   We're using a MAX485-compatible RS485 Transceiver.
@@ -36,8 +36,8 @@
 #define MAX485_DE      3
 #define MAX485_RE_NEG  2
 
-// instantiate ModbusMaster object
-ModbusMaster node;
+// instantiate ModbusServer object
+ModbusServer node;
 
 void preTransmission()
 {

@@ -2,15 +2,15 @@
 @file
 Arduino library for communicating with Modbus slaves over RS232/485 (via RTU protocol).
 
-@defgroup setup ModbusMaster Object Instantiation/Initialization
-@defgroup buffer ModbusMaster Buffer Management
+@defgroup setup ModbusServer Object Instantiation/Initialization
+@defgroup buffer ModbusServer Buffer Management
 @defgroup discrete Modbus Function Codes for Discrete Coils/Inputs
 @defgroup register Modbus Function Codes for Holding/Input Registers
 @defgroup constant Modbus Function Codes, Exception Codes
 */
 /*
 
-  ModbusMaster.h - Arduino library for communicating with Modbus slaves
+  ModbusServer.h - Arduino library for communicating with Modbus slaves
   over RS232/485 (via RTU protocol).
 
   Library:: Modbuster
@@ -32,12 +32,12 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 */
 
   
-#ifndef MODBUSTER_SLAVE_H
-#define MODBUSTER_SLAVE_H
+#ifndef MODBUSTER_CLIENT_H
+#define MODBUSTER_CLIENT_H
 
 /* _____PROJECT INCLUDES_____________________________________________________ */
 // include Modbus constants
-#include "Modbus.h"
+#include "Modbuster.h"
 
 namespace ModBuster {
 
@@ -46,16 +46,16 @@ namespace ModBuster {
 Arduino class library for communicating with Modbus slaves over 
 RS232/485 (via RTU protocol).
 */
-class ModbusSlave : public ModbusBase
+class ModbusClient : public ModbusBase
 {
 public :
 
-    ModbusSlave();
+    ModbusClient();
    
     void begin(uint8_t, Stream &serial);
 
     // slave function that conducts Modbus transactions
-    bool ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size, uint8_t& result);
+    bool ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8_t& result);
     
 private :
 
@@ -81,7 +81,7 @@ private :
 
 } // namespace ModBuster
 
-#endif // MODBUSTER_SLAVE_H
+#endif // MODBUSTER_ClIENT_H
 
 /**
 @example examples/Basic/Basic.pde

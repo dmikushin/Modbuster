@@ -1,9 +1,9 @@
 /*
 
-  PhoenixContact_nanoLC.ino - example using ModbusMaster library
+  PhoenixContact_nanoLC.ino - example using ModbusServer library
   to communicate with PHOENIX CONTACT nanoLine controller.
 
-  Library:: ModbusMaster
+  Library:: ModbusServer
   Author:: Doc Walker <4-20ma@wvfans.net>
 
   Copyright:: 2009-2016 Doc Walker
@@ -22,7 +22,7 @@
 
 */
 
-#include <ModbusMaster.h>
+#include <ModbusServer.h>
 
 // discrete coils
 #define NANO_DO(n)   (0x0000 + n) ///< returns nanoLC discrete output address
@@ -45,8 +45,8 @@
 #define NANO_AI(n)   (0x0000 + 2 * n) ///< returns nanoLC analog input address
 
 
-// instantiate ModbusMaster object
-ModbusMaster nanoLC;
+// instantiate ModbusServer object
+ModbusServer nanoLC;
 
 
 void setup()

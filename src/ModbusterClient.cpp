@@ -4,7 +4,7 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 */
 /*
 
-  ModbusSlave.cpp - Arduino library for communicating with Modbus slaves
+  ModbusClient.cpp - Arduino library for communicating with Modbus slaves
   over RS232/485 (via RTU protocol).
 
   Library:: Modbuster
@@ -27,7 +27,7 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 
 
 /* _____PROJECT INCLUDES_____________________________________________________ */
-#include "ModbusSlave.h"
+#include "ModbusterClient.h"
 
 /* _____PROJECT INCLUDES_____________________________________________________ */
 // functions to manipulate words
@@ -39,11 +39,11 @@ using namespace ModBuster;
 /**
 Constructor.
 
-Creates class object; initialize it using ModbusSlave::begin().
+Creates class object; initialize it using ModbusClient::begin().
 
 @ingroup setup
 */
-ModbusSlave::ModbusSlave(void) : ModbusBase() { }
+ModbusClient::ModbusClient(void) : ModbusBase() { }
 
 /**
 Initialize class object.
@@ -55,7 +55,7 @@ Call once class has been instantiated, typically within setup().
 @param &serial reference to serial port object (Serial, Serial1, ... Serial3)
 @ingroup setup
 */
-void ModbusSlave::begin(uint8_t slave, Stream &serial)
+void ModbusClient::begin(uint8_t slave, Stream &serial)
 {
 //  txBuffer = (uint16_t*) calloc(ku8MaxBufferSize, sizeof(uint16_t));
   _u8MBSlave = slave;
@@ -86,7 +86,7 @@ Sequence:
 @param 0 on success; exception number on failure
 @return true, if request has been handled; false otherwiser
 */
-bool ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size, uint8_t& u8MBStatus)
+bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8_t& u8MBStatus)
 {
   u8MBStatus = ku8MBSuccess;
 
@@ -207,7 +207,7 @@ bool ModbusSlave::ModbusSlaveTransaction(uint16_t *regs, uint8_t u8size, uint8_t
  * @return u8ModbusADUSize Response to master length
  * @ingroup discrete
  */
-void ModbusSlave::process_FC1( uint16_t *regs, uint8_t /*u8size*/ )
+void ModbusClient::process_FC1( uint16_t *regs, uint8_t /*u8size*/ )
 {
     uint8_t u8currentRegister, u8currentBit, u8bytesno, u8bitsno;
     uint16_t u16currentCoil, u16coil;
@@ -260,7 +260,7 @@ void ModbusSlave::process_FC1( uint16_t *regs, uint8_t /*u8size*/ )
  * @return u8ModbusADUSize Response to master length
  * @ingroup register
  */
-void ModbusSlave::process_FC3( uint16_t *regs, uint8_t /*u8size*/ )
+void ModbusClient::process_FC3( uint16_t *regs, uint8_t /*u8size*/ )
 {
 
     uint8_t u8StartAdd = word( u8ModbusADU[ ADD_HI ], u8ModbusADU[ ADD_LO ] );
@@ -287,7 +287,7 @@ void ModbusSlave::process_FC3( uint16_t *regs, uint8_t /*u8size*/ )
  * @return u8ModbusADUSize Response to master length
  * @ingroup discrete
  */
-void ModbusSlave::process_FC5( uint16_t *regs, uint8_t /*u8size*/ )
+void ModbusClient::process_FC5( uint16_t *regs, uint8_t /*u8size*/ )
 {
     uint8_t u8currentRegister, u8currentBit;
     uint8_t u8CopyBufferSize;
@@ -316,7 +316,7 @@ void ModbusSlave::process_FC5( uint16_t *regs, uint8_t /*u8size*/ )
  * @return u8ModbusADUSize Response to master length
  * @ingroup register
  */
-void ModbusSlave::process_FC6( uint16_t *regs, uint8_t /*u8size*/ )
+void ModbusClient::process_FC6( uint16_t *regs, uint8_t /*u8size*/ )
 {
 
     uint8_t u8add = word( u8ModbusADU[ ADD_HI ], u8ModbusADU[ ADD_LO ] );
@@ -337,7 +337,7 @@ void ModbusSlave::process_FC6( uint16_t *regs, uint8_t /*u8size*/ )
  * @return u8ModbusADUSize Response to master length
  * @ingroup discrete
  */
-void ModbusSlave::process_FC15( uint16_t *regs, uint8_t /*u8size*/ )
+void ModbusClient::process_FC15( uint16_t *regs, uint8_t /*u8size*/ )
 {
     uint8_t u8currentRegister, u8currentBit, u8frameByte, u8bitsno;
     uint16_t u16currentCoil, u16coil;
@@ -388,7 +388,7 @@ void ModbusSlave::process_FC15( uint16_t *regs, uint8_t /*u8size*/ )
  * @return u8ModbusADUSize Response to master length
  * @ingroup register
  */
-void ModbusSlave::process_FC16( uint16_t *regs, uint8_t /*u8size*/ )
+void ModbusClient::process_FC16( uint16_t *regs, uint8_t /*u8size*/ )
 {
     uint8_t u8StartAdd = u8ModbusADU[ ADD_HI ] << 8 | u8ModbusADU[ ADD_LO ];
     uint8_t u8regsno = u8ModbusADU[ NB_HI ] << 8 | u8ModbusADU[ NB_LO ];
@@ -423,7 +423,7 @@ void ModbusSlave::process_FC16( uint16_t *regs, uint8_t /*u8size*/ )
  * @return nothing
  * @ingroup buffer
  */
-void ModbusSlave::sendTxBuffer()
+void ModbusClient::sendTxBuffer()
 {
     // append CRC to message
     uint16_t u16crc = crc(u8ModbusADU, u8ModbusADUSize);

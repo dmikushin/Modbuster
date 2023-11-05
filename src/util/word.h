@@ -12,20 +12,20 @@ This header file provides utility functions for manipulating words.
 
   word.h - Utility Functions for Manipulating Words
 
-  This file is part of ModbusMaster.
+  This file is part of ModbusServer.
 
-  ModbusMaster is free software: you can redistribute it and/or modify
+  ModbusServer is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-  ModbusMaster is distributed in the hope that it will be useful,
+  ModbusServer is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with ModbusMaster.  If not, see <http://www.gnu.org/licenses/>.
+  along with ModbusServer.  If not, see <http://www.gnu.org/licenses/>.
 
   Written by Doc Walker (Rx)
   Copyright © 2009-2015 Doc Walker <4-20ma at wvfans dot net>
