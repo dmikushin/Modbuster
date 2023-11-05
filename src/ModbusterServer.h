@@ -54,6 +54,9 @@ public :
    
     void begin(uint8_t, Stream &serial);
     
+    uint16_t getResponseTimeOut() const;
+    void setResponseTimeOut(uint16_t u16MBResponseTimeout);
+    
     uint16_t getResponseBuffer(uint8_t);
     void     clearResponseBuffer();
     uint8_t  setTransmitBuffer(uint8_t, uint16_t);
@@ -86,6 +89,7 @@ public :
   private:
     Stream* _serial;                                             ///< reference to serial port object
     uint8_t  _u8MBSlave;                                         ///< Modbus slave (1..247) initialized in begin()
+    uint16_t _u16MBResponseTimeout = ku16MBResponseTimeout;      ///< Modbus timeout [milliseconds]
     uint16_t _u16ReadAddress;                                    ///< slave register from which to read
     uint16_t _u16ReadQty;                                        ///< quantity of words to read
     uint16_t _u16ResponseBuffer[ku8MaxBufferSize];               ///< buffer to store Modbus slave response; read via GetResponseBuffer()

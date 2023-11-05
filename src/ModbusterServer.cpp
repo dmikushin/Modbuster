@@ -69,6 +69,15 @@ void ModbusServer::begin(uint8_t slave, Stream &serial)
 #endif
 }
 
+uint16_t ModbusServer::getResponseTimeOut() const
+{
+  return _u16MBResponseTimeout;
+}
+
+void ModbusServer::setResponseTimeOut(uint16_t u16MBResponseTimeout)
+{
+  _u16MBResponseTimeout = u16MBResponseTimeout;
+}
 
 void ModbusServer::beginTransmission(uint16_t u16Address)
 {
@@ -755,7 +764,7 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
           break;
       }
     }
-    if ((millis() - u32StartTime) > ku16MBResponseTimeout)
+    if ((millis() - u32StartTime) > _u16MBResponseTimeout)
     {
       u8MBStatus = ku8MBResponseTimedOut;
     }

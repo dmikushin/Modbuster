@@ -212,7 +212,7 @@ const uint8_t ku8MaxBufferSize = 64;
 // Slave to master response size
 const uint8_t ku8ResponseSize = 6;
     
-// Modbus timeout [milliseconds]
+// Modbus default timeout [milliseconds]
 const uint16_t ku16MBResponseTimeout = 2000;
 
 class ModbusBase
