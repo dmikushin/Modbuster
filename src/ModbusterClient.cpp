@@ -103,27 +103,40 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8
   uint32_t u32StartTime = millis();
   do
   {
-    if (!_serial->available()) continue;
-
+    if (_serial->available())
+	{
 #if __MODBUSMASTER_DEBUG__
-    digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, true);
+      digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, true);
 #endif
-    uint8_t ch = _serial->read();
+      uint8_t ch = _serial->read();
 
 #ifdef MODBUS_DEBUG       
-    if (ch < 15) debugSerialPort.print("0");
-    debugSerialPort.print(ch, HEX);
-    debugSerialPort.print("<");
+      if (ch < 15) debugSerialPort.print("0");
+      debugSerialPort.print(ch, HEX);
+      debugSerialPort.print("<");
 #endif         
   
-    u8ModbusADU[u8ModbusADUSize++] = ch;
-    u8BytesLeft--;
-    u32StartTime = millis();
+      u8ModbusADU[u8ModbusADUSize++] = ch;
+      u8BytesLeft--;
+      u32StartTime = millis();
 
 #if __MODBUSMASTER_DEBUG__
-    digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, false);
+      digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, false);
 #endif
-    
+    }
+    else
+    {
+#if __MODBUSMASTER_DEBUG__
+      digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, true);
+#endif
+      if (_idle)
+      {
+        _idle();
+      }
+#if __MODBUSMASTER_DEBUG__
+      digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, false);
+#endif
+    }
   }
   while ((millis() - u32StartTime) < T35);
 

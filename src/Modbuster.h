@@ -180,7 +180,7 @@ enum ModbusFunction
 };
 
 // Modbus function codes for 16 bit access
-enum ModbusFunctin16bit
+enum ModbusFunction16bit
 {
     ku8MBReadHoldingRegisters       = 0x03, ///< Modbus function 0x03 Read Holding Registers
     ku8MBReadInputRegisters         = 0x04, ///< Modbus function 0x04 Read Input Registers
