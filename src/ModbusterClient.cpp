@@ -159,6 +159,12 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8
     return true;
   }
 
+  // Optional additional user-defined work before processing the request.
+  if (_preTransmission)
+  {
+    _preTransmission();
+  }
+
   // Process request and prepare response of in the same buffer.
   uint8_t u8MBFunction = u8ModbusADU[FUNC];
   switch (u8MBFunction)
@@ -195,15 +201,10 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8
   // flush receive buffer before transmitting request
   while (_serial->read() != -1)
     continue;
-
-  // transmit response
-  if (_preTransmission)
-  {
-    _preTransmission();
-  }
   
   sendTxBuffer();
 
+  // Optional additional user-defined work after processing the request.
   if (_postTransmission)
   {
     _postTransmission();

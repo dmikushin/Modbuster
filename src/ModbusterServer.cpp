@@ -647,14 +647,14 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
   u8ModbusADU[u8ModbusADUSize++] = lowByte(u16CRC);
   u8ModbusADU[u8ModbusADUSize] = 0;
 
-  // flush receive buffer before transmitting request
-  while (_serial->read() != -1);
-
   // transmit request
   if (_preTransmission)
   {
     _preTransmission();
   }
+
+  // flush receive buffer before transmitting request
+  while (_serial->read() != -1);
 
   #ifdef MODBUS_DEBUG       
   debugSerialPort.println();
@@ -678,6 +678,7 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
   
   u8ModbusADUSize = 0;
   _serial->flush();    // flush transmit buffer
+
   if (_postTransmission)
   {
     _postTransmission();
