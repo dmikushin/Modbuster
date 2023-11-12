@@ -219,20 +219,22 @@ class ModbusBase
 {
 protected :
 
-    // idle callback function; gets called during idle time between TX and RX
-    void (*_idle)() = nullptr;
-    // preTransmission callback function; gets called before writing a Modbus message
-    void (*_preTransmission)() = nullptr;
-    // postTransmission callback function; gets called after a Modbus message has been sent
-    void (*_postTransmission)() = nullptr;
+    // Optional additional user-defined work step.
+    void (*_preRead)() = nullptr;
+    void (*_idleRead)() = nullptr;
+    void (*_postRead)() = nullptr;
+    void (*_preWrite)() = nullptr;
+    void (*_postWrite)() = nullptr;
 
     ModbusBase();
 
 public :
 
-    void idle(void (*)());
-    void preTransmission(void (*)());
-    void postTransmission(void (*)());
+    void preRead(void (*)());
+    void idleRead(void (*)());
+    void postRead(void (*)());
+    void preWrite(void (*)());
+    void postWrite(void (*)());
 };
 
 uint16_t crc(uint8_t* au8Buffer, uint8_t u8length);

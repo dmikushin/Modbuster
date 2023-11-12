@@ -647,10 +647,10 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
   u8ModbusADU[u8ModbusADUSize++] = lowByte(u16CRC);
   u8ModbusADU[u8ModbusADUSize] = 0;
 
-  // transmit request
-  if (_preTransmission)
+  // Optional additional user-defined work step.
+  if (_preWrite)
   {
-    _preTransmission();
+    _preWrite();
   }
 
   // flush receive buffer before transmitting request
@@ -679,9 +679,16 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
   u8ModbusADUSize = 0;
   _serial->flush();    // flush transmit buffer
 
-  if (_postTransmission)
+  // Optional additional user-defined work step.
+  if (_postWrite)
   {
-    _postTransmission();
+    _postWrite();
+  }
+  
+  // Optional additional user-defined work step.
+  if (_preRead)
+  {
+    _preRead();
   }
   
   // loop until we run out of time or bytes, or an error occurs
@@ -689,24 +696,24 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
   while (u8BytesLeft && !u8MBStatus)
   {
     if (_serial->available())
-    { uint8_t ch;
+    {
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, true);
 #endif
-      ch  = _serial->read();
+      uint8_t ch = _serial->read();
 
 #ifdef MODBUS_DEBUG       
-          if (ch<15) debugSerialPort.print("0");
-          debugSerialPort.print (ch,HEX);
-          debugSerialPort.print("<");
+      if (ch<15) debugSerialPort.print("0");
+      debugSerialPort.print (ch,HEX);
+      debugSerialPort.print("<");
 #endif
           
       
       if ((ch == _u8MBSlave) || u8ModbusADUSize)
-        {
+      {
         u8ModbusADU[u8ModbusADUSize++]=ch;
         u8BytesLeft--;
-        }
+      }
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, false);
 #endif
@@ -716,9 +723,10 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, true);
 #endif
-      if (_idle)
+      // Optional additional user-defined work step.
+      if (_idleRead)
       {
-        _idle();
+          _idleRead();
       }
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, false);
@@ -783,6 +791,12 @@ uint8_t ModbusServer::ModbusServerTransaction(uint8_t u8MBFunction)
     {
       u8MBStatus = ku8MBInvalidCRC;
     }
+  }
+
+  // Optional additional user-defined work step.
+  if (_postRead)
+  {
+    _postRead();
   }
 
   // disassemble ADU into words
@@ -866,48 +880,54 @@ uint8_t ModbusServer::ModbusRawTransaction(uint8_t *u8ModbusADU,uint8_t u8Modbus
   // flush receive buffer before transmitting request
   while (_serial->read() != -1);
 
-  // transmit request
-  if (_preTransmission)
+  // Optional additional user-defined work step.
+  if (_preWrite)
   {
-    _preTransmission();
+    _preWrite();
   }
 
-  #ifdef MODBUS_DEBUG       
+#ifdef MODBUS_DEBUG       
   debugSerialPort.println();
-  #endif
+#endif
   
   for (uint8_t i = 0; i < u8ModbusADUSize; i++)
   {
     _serial->write(u8ModbusADU[i]);
     
-   #ifdef MODBUS_DEBUG       
+#ifdef MODBUS_DEBUG       
     if (u8ModbusADU[i]<15) debugSerialPort.print("0");    
     debugSerialPort.print (u8ModbusADU[i],HEX);
     debugSerialPort.print(">");
-   #endif
-    
+#endif
   }
   
   _serial->write(highByte(u16CRC));
   _serial->write(lowByte(u16CRC)); 
 
-  #ifdef MODBUS_DEBUG       
-    if (highByte(u16CRC)<15) debugSerialPort.print("0");    
-    debugSerialPort.print (lowByte(u16CRC),HEX);
+#ifdef MODBUS_DEBUG       
+  if (highByte(u16CRC)<15) debugSerialPort.print("0");    
+  debugSerialPort.print (lowByte(u16CRC),HEX);
     
-    if (lowByte(u16CRC)<15) debugSerialPort.print("0");    
-    debugSerialPort.print (highByte(u16CRC),HEX);
-    debugSerialPort.print(">");
+  if (lowByte(u16CRC)<15) debugSerialPort.print("0");    
+  debugSerialPort.print (highByte(u16CRC),HEX);
+  debugSerialPort.print(">");
 
-    debugSerialPort.println();
-   #endif 
-   
+  debugSerialPort.println();
+#endif 
   
   u8ModbusADUSize = 0;
   _serial->flush();    // flush transmit buffer
-  if (_postTransmission)
+
+  // Optional additional user-defined work step.
+  if (_postWrite)
   {
-    _postTransmission();
+    _postWrite();
+  }
+
+  // Optional additional user-defined work step.
+  if (_preRead)
+  {
+    _preRead();
   }
   
   // loop until we run out of time or bytes, or an error occurs
@@ -942,9 +962,9 @@ uint8_t ModbusServer::ModbusRawTransaction(uint8_t *u8ModbusADU,uint8_t u8Modbus
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, true);
 #endif
-      if (_idle)
+      if (_idleRead)
       {
-        _idle();
+        _idleRead();
       }
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, false);
@@ -974,5 +994,12 @@ uint8_t ModbusServer::ModbusRawTransaction(uint8_t *u8ModbusADU,uint8_t u8Modbus
   _u8TransmitBufferIndex = 0;
   u16TransmitBufferLength = 0;
   _u8ResponseBufferIndex = 0;
+
+  // Optional additional user-defined work step.
+  if (_postRead)
+  {
+    _postRead();
+  }
+
   return u8MBStatus;
 }

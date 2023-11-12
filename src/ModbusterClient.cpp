@@ -93,6 +93,12 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8
   if (!_serial->available())
     return false;
 
+  // Optional additional user-defined work step.
+  if (_preRead)
+  {
+    _preRead();
+  }
+
 #ifdef MODBUS_DEBUG       
   debugSerialPort.println();
 #endif
@@ -129,9 +135,10 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, true);
 #endif
-      if (_idle)
+      // Optional additional user-defined work step.
+      if (_idleRead)
       {
-        _idle();
+        _idleRead();
       }
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_B__, false);
@@ -159,10 +166,10 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8
     return true;
   }
 
-  // Optional additional user-defined work before processing the request.
-  if (_preTransmission)
+  // Optional additional user-defined work step.
+  if (_postRead)
   {
-    _preTransmission();
+    _postRead();
   }
 
   // Process request and prepare response of in the same buffer.
@@ -198,18 +205,24 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size, uint8
   u16TransmitBufferLength = 0;
   _u8ResponseBufferIndex = 0;
 
+  // Optional additional user-defined work step.
+  if (_preWrite)
+  {
+    _preWrite();
+  }
+
   // flush receive buffer before transmitting request
   while (_serial->read() != -1)
     continue;
   
   sendTxBuffer();
 
-  // Optional additional user-defined work after processing the request.
-  if (_postTransmission)
+  // Optional additional user-defined work step.
+  if (_postWrite)
   {
-    _postTransmission();
+    _postWrite();
   }
-  
+
   return true;
 }
 
