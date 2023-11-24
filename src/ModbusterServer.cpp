@@ -25,12 +25,9 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 
 */
 
-
-/* _____PROJECT INCLUDES_____________________________________________________ */
 #include "ModbusterServer.h"
 
-/* _____PROJECT INCLUDES_____________________________________________________ */
-// functions to manipulate words
+#include "Arduino.h"
 #include "util/word.h"
 
 using namespace ModBuster;

@@ -39,6 +39,8 @@ Arduino library for communicating with Modbus slaves over RS232/485 (via RTU pro
 // include Modbus constants
 #include "Modbuster.h"
 
+class Stream;
+
 namespace ModBuster {
 
 /* _____CLASS DEFINITIONS____________________________________________________ */

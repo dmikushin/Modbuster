@@ -29,6 +29,7 @@ Arduino library for communicating with Modbus master/slaves over RS232/485 (via 
 #ifndef MODBUSTER_H
 #define MODBUSTER_H
 
+#include <stdint.h>
 
 /**
 Uncomment MODBUS_DEBUG to print the message content to the serial port
@@ -48,10 +49,6 @@ Set to 1 to enable debugging features within class:
 #define __MODBUSMASTER_DEBUG__ (0)
 #define __MODBUSMASTER_DEBUG_PIN_A__ 4
 #define __MODBUSMASTER_DEBUG_PIN_B__ 5
-
-/* _____STANDARD INCLUDES____________________________________________________ */
-// include types & constants of Wiring core API
-#include "Arduino.h"
 
 namespace ModBuster {
 
