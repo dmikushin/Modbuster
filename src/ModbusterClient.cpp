@@ -125,7 +125,7 @@ bool ModbusClient::ModbusClientTransaction(uint16_t *regs, uint8_t u8size,
   if (highByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
       lowByte(u16CRC) != u8ModbusADU[u8ModbusADUSize - 1]) {
     u8MBStatus = ku8MBInvalidCRC;
-    return true;
+    return false;
   }
 
   // Optional additional user-defined work step.
