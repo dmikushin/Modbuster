@@ -2,17 +2,18 @@
 
 <img width="300px" src="modbusted.png">
 
-[license]:          LICENSE
-[code of conduct]:  CODE_OF_CONDUCT.md
 
 ## Overview
+
 This is an Arduino library implementing MODBUS protocol for communicating between MODBUS server and clients over RS232/485 (via RTU protocol). Both server and client roles are supported for Arduino device.
 
 This library is developed despite many other existing libraries, because not so many authors understand the importance of MODBUS support on arbitrary software serial pins.
 
 This library is a fork and extension of [ModbusMaster](https://github.com/4-20ma/ModbusMaster), combined with the best portions of [Modbus-Master-Slave-for-Arduino](https://github.com/smarmengol/Modbus-Master-Slave-for-Arduino).
 
+
 ## Features
+
 The following Modbus functions are available:
 
 Discrete Coils/Flags
@@ -51,6 +52,7 @@ Refer to Arduino Tutorials > Libraries [Manual Installation](https://www.arduino
 
 
 ## Hardware
+
 This library has been tested with an Arduino [Duemilanove](http://www.arduino.cc/en/Main/ArduinoBoardDuemilanove), PHOENIX CONTACT [nanoLine](https://www.phoenixcontact.com/online/portal/us?1dmy&urile=wcm%3apath%3a/usen/web/main/products/subcategory_pages/standard_logic_modules_p-21-03-03/3329dd38-7c6a-46e1-8260-b9208235d6fe/3329dd38-7c6a-46e1-8260-b9208235d6fe) controller, connected via RS485 using a Maxim [MAX488EPA](http://www.maxim-ic.com/quick_view2.cfm/qv_pk/1111) transceiver.
 
 
